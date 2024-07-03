@@ -42,11 +42,13 @@ public class FileWriteServiceImpl implements FileWriterService {
     }
 
     @Override
-    public synchronized void writeUserToFile(User user) {
+    public synchronized User writeUserToFile(User user) {
         createHeaderIfNeeded();
         String userData = String.format("%-30s %-30s %-30s", user.getUsername(), user.getEmail(), user.getPassword());
         writer.println(userData);
         writer.flush();
+
+        return user;
     }
 
     private boolean fileContainsHeader() throws IOException {

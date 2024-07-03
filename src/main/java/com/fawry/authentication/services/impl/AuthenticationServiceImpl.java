@@ -1,6 +1,8 @@
 package com.fawry.authentication.services.impl;
 
+import com.fawry.authentication.exceptions.customExceptions.NotAuthonoticatedException;
 import com.fawry.authentication.model.RequestLoginModel;
+import com.fawry.authentication.model.ResponseAuthenticationModel;
 import com.fawry.authentication.model.User;
 import com.fawry.authentication.services.AuthenticationService;
 import com.fawry.authentication.services.FileReaderService;
@@ -19,39 +21,35 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   @Autowired private FileReaderService fileReaderService;
 
   @Override
-  public synchronized void registerUser(User user) throws Exception {
-    //        String encryptedPassword = AESEncryptionUtil.encrypt(user.getPassword());
-    //        user.setPassword(user.getPassword());
-    fileWriteService.writeUserToFile(user);
+  public synchronized ResponseAuthenticationModel registerUser(User user) throws Exception {
+    String encryptedPassword = AESEncryptionUtil.encrypt(user.getPassword());
+    user.setPassword(encryptedPassword);
+    User savedUser = fileWriteService.writeUserToFile(user);
+    return ResponseAuthenticationModel.builder()
+        .email(savedUser.getEmail())
+        .username(savedUser.getUsername())
+        .build();
   }
 
-  public User loginUser(RequestLoginModel user) throws Exception {
-    // TODO: Replace with actual authentication logic
-    System.out.println("Logging in user with email: " + user.getEmail());
-
-    System.out.println(user.getEmail());
+  @Override
+  public ResponseAuthenticationModel loginUser(RequestLoginModel user) throws Exception {
     User foundUser =
         fileReaderService
             .getUserFromFile(user.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new NotAuthonoticatedException("User not found"));
 
-    //        String decryptedPassword1 = AESEncryptionUtil.decrypt(foundUser.getPassword());
-    //    System.out.println(decryptedPassword1);
+    String decryptedPassword = AESEncryptionUtil.decrypt(foundUser.getPassword());
 
-    // Decrypt stored password and compare with provided password
-    //        try {
-    //            String decryptedPassword = AESEncryptionUtil.decrypt(foundUser.getPassword());
+    System.out.println("Decrypted Password: " + decryptedPassword);
+    System.out.println("Provided Password: " + user.getPassword());
 
-    //            System.out.println("Decrypted Password: " + decryptedPassword);
-    //            System.out.println("Provided Password: " + user.getPassword());
-
-    if (!foundUser.getPassword().equals(user.getPassword())) {
-      throw new AuthenticationException("Wrong password");
+    if (!decryptedPassword.equals(user.getPassword())) {
+      System.out.println("Wrong password");
+      throw new NotAuthonoticatedException("Wrong password");
     }
-
-    return foundUser;
-    //        } catch (Exception e) {
-    //      throw new RuntimeException("Error during authentication", e);
-    //        }
+    return ResponseAuthenticationModel.builder()
+        .email(foundUser.getEmail())
+        .username(foundUser.getUsername())
+        .build();
   }
 }
