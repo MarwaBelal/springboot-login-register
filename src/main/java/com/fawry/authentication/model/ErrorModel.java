@@ -13,6 +13,6 @@ import java.sql.Timestamp;
 @Builder
 public class ErrorModel {
 
-  private String message;
-  private Timestamp occurredOn;
+    private String message;
+    private Timestamp occurredOn;
 }
