@@ -1,4 +1,4 @@
-package com.fawry.authentication.model;
+package com.fawry.authentication.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

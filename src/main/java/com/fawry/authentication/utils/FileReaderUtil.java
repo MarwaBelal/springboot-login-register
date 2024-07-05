@@ -1,6 +1,6 @@
 package com.fawry.authentication.utils;
 
-import com.fawry.authentication.model.User;
+import com.fawry.authentication.common.model.UserModel;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -19,7 +19,7 @@ public class FileReaderUtil {
         createReader();
     }
 
-    public static Optional<User> getUserFromFile(String email) throws IOException {
+    public static Optional<UserModel> getUserFromFile(String email) throws IOException {
 
         String line;
         bufferedReader.mark(0);
@@ -30,7 +30,7 @@ public class FileReaderUtil {
 
             String[] userData = line.split("\\s+");
             if (userData.length == 3 && userData[1].equals(email)) {
-                User user = new User();
+                UserModel user = new UserModel();
                 user.setUsername(userData[0]);
                 user.setEmail(userData[1]);
                 user.setPassword(userData[2]);

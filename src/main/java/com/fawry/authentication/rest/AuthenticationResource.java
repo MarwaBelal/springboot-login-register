@@ -1,23 +1,31 @@
 package com.fawry.authentication.rest;
 
-import com.fawry.authentication.model.RequestLoginModel;
-import com.fawry.authentication.model.ResponseAuthenticationModel;
-import com.fawry.authentication.model.User;
+import com.fawry.authentication.common.model.RequestLoginModel;
+import com.fawry.authentication.common.model.ResponseAuthenticationModel;
+import com.fawry.authentication.common.model.UserModel;
 import com.fawry.authentication.services.AuthenticationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
+@RequiredArgsConstructor
 public class AuthenticationResource {
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public ResponseAuthenticationModel registerUser(@RequestBody User user) throws Exception {
+    public ResponseEntity<?> registerUser(@RequestBody UserModel user) throws Exception {
+        return ResponseEntity.ok("User registered successfully");
+    }
 
-        return authenticationService.registerUser(user);
+    @GetMapping("/getUsers")
+    public ResponseEntity<List<UserModel>> getUsers() throws Exception {
+        return ResponseEntity.ok(authenticationService.listUsers());
     }
 
     @PostMapping("/login")
