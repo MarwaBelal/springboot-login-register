@@ -3,14 +3,16 @@ package com.fawry.authentication.services.impl;
 import com.fawry.authentication.common.model.RequestLoginModel;
 import com.fawry.authentication.common.model.ResponseAuthenticationModel;
 import com.fawry.authentication.common.model.UserModel;
-import com.fawry.authentication.exceptions.customExceptions.NotAddedException;
 import com.fawry.authentication.exceptions.customExceptions.NotAuthenticatedException;
+import com.fawry.authentication.exceptions.customExceptions.UserIsAlreadyExistException;
 import com.fawry.authentication.repository.UserRepository;
 import com.fawry.authentication.repository.entity.User;
 import com.fawry.authentication.services.AuthenticationService;
 import com.fawry.authentication.utils.AESEncryptionUtil;
 import com.fawry.authentication.utils.FileReaderUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,17 +22,23 @@ import java.util.List;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void registerUser(final UserModel userModel) throws Exception {
-        try {
-            User user = new User();
-            user.setUsername(userModel.getUsername());
-            user.setEmail(userModel.getEmail());
-            user.setPassword(AESEncryptionUtil.encrypt(userModel.getPassword()));
-            userRepository.save(user);
-        } catch (Exception e) {
-            throw new NotAddedException("Error while adding user");
+    public ResponseEntity<String> registerUser(final UserModel userModel) throws Exception {
+        User user = userRepository.findUserByEmail(userModel.getEmail());
+        if (user == null) {
+            User newUser = new User();
+            newUser.setUsername(userModel.getUsername());
+            newUser.setEmail(userModel.getEmail());
+            // Encode the password before saving
+            String encodedPassword = passwordEncoder.encode(userModel.getPassword());
+            newUser.setPassword(encodedPassword);
+            System.out.println("encoded" + encodedPassword);
+            userRepository.save(newUser);
+            return ResponseEntity.ok("User is added successfully");
+        } else {
+            throw new UserIsAlreadyExistException("User Is Already Exist!");
         }
     }
 
@@ -64,7 +72,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     userModel.setUsername(user.getUsername());
                     userModel.setEmail(user.getEmail());
                     userModel.setId(user.getId());
-                    userModel.setPassword("*******");
+                    userModel.setPassword(user.getPassword());
                     return userModel;
                 }).toList();
     }

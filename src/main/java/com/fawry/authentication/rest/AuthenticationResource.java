@@ -3,6 +3,7 @@ package com.fawry.authentication.rest;
 import com.fawry.authentication.common.model.RequestLoginModel;
 import com.fawry.authentication.common.model.ResponseAuthenticationModel;
 import com.fawry.authentication.common.model.UserModel;
+import com.fawry.authentication.repository.UserRepository;
 import com.fawry.authentication.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthenticationResource {
     private final AuthenticationService authenticationService;
+    private final UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserModel user) throws Exception {
-        return ResponseEntity.ok("User registered successfully");
+        return authenticationService.registerUser(user);
     }
 
     @GetMapping("/getUsers")
