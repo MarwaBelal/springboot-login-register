@@ -1,14 +1,14 @@
 package com.fawry.authentication.repository;
 
 import com.fawry.authentication.repository.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.ListCrudRepository;
 
-public interface UserRepository extends ListCrudRepository<User, String> {
+import java.util.Optional;
 
-    default User findUserByEmail(String email) {
-        return findAll().stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst()
-                .orElse(null);
-    }
+public interface UserRepository extends JpaRepository<User, Integer> {
+
+    Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

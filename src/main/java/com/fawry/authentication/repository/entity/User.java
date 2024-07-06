@@ -1,13 +1,21 @@
 package com.fawry.authentication.repository.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Table(name = "users")
+
+
 @Entity
+@Table(name = "users")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -20,7 +28,6 @@ public class User {
     private String email;
 
     @Column(name = "password")
-    @JsonIgnore
     private String password;
 
 }

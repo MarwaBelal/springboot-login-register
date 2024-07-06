@@ -1,39 +1,38 @@
 package com.fawry.authentication.rest;
 
 import com.fawry.authentication.common.model.RequestLoginModel;
+import com.fawry.authentication.common.model.RequestRegisterModel;
 import com.fawry.authentication.common.model.ResponseAuthenticationModel;
 import com.fawry.authentication.common.model.UserModel;
 import com.fawry.authentication.repository.UserRepository;
+import com.fawry.authentication.repository.entity.User;
 import com.fawry.authentication.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthenticationResource {
-    private final AuthenticationService authenticationService;
-    private final UserRepository userRepository;
+  private final AuthenticationService authenticationService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserModel user) throws Exception {
-        return authenticationService.registerUser(user);
-    }
+  @PostMapping("/register")
+  public ResponseAuthenticationModel registerUser(
+      @RequestBody RequestRegisterModel requestRegisterModel) {
+    return authenticationService.registerUser(requestRegisterModel);
+  }
 
-    @GetMapping("/getUsers")
-    public ResponseEntity<List<UserModel>> getUsers() throws Exception {
-        return ResponseEntity.ok(authenticationService.listUsers());
-    }
+  @GetMapping("/users")
+  public List<ResponseAuthenticationModel> getUsers() throws Exception {
+    return authenticationService.listUsers();
+  }
 
-    @PostMapping("/login")
-    public ResponseAuthenticationModel loginUser(@RequestBody RequestLoginModel user)
-            throws Exception {
+  @PostMapping("/login")
+  public ResponseAuthenticationModel loginUser(@RequestBody RequestLoginModel user) {
 
-        return authenticationService.loginUser(user);
-    }
+    return authenticationService.loginUser(user);
+  }
 }

@@ -1,18 +1,17 @@
 package com.fawry.authentication.services;
 
 import com.fawry.authentication.common.model.RequestLoginModel;
+import com.fawry.authentication.common.model.RequestRegisterModel;
 import com.fawry.authentication.common.model.ResponseAuthenticationModel;
-import com.fawry.authentication.common.model.UserModel;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 public interface AuthenticationService {
 
-    ResponseEntity<String> registerUser(UserModel userModel) throws Exception;
+    ResponseAuthenticationModel registerUser(RequestRegisterModel requestRegisterModel);
 
 
-    ResponseAuthenticationModel loginUser(RequestLoginModel user) throws Exception;
+    ResponseAuthenticationModel loginUser(RequestLoginModel requestLoginModel);
 
-    List<UserModel> listUsers();
+    List<ResponseAuthenticationModel> listUsers();
 }

@@ -1,6 +1,7 @@
 package com.fawry.authentication.services.impl;
 
 import com.fawry.authentication.common.model.RequestLoginModel;
+import com.fawry.authentication.common.model.RequestRegisterModel;
 import com.fawry.authentication.common.model.ResponseAuthenticationModel;
 import com.fawry.authentication.common.model.UserModel;
 import com.fawry.authentication.exceptions.customExceptions.NotAuthenticatedException;
@@ -8,10 +9,7 @@ import com.fawry.authentication.exceptions.customExceptions.UserIsAlreadyExistEx
 import com.fawry.authentication.repository.UserRepository;
 import com.fawry.authentication.repository.entity.User;
 import com.fawry.authentication.services.AuthenticationService;
-import com.fawry.authentication.utils.AESEncryptionUtil;
-import com.fawry.authentication.utils.FileReaderUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,59 +19,61 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public ResponseEntity<String> registerUser(final UserModel userModel) throws Exception {
-        User user = userRepository.findUserByEmail(userModel.getEmail());
-        if (user == null) {
-            User newUser = new User();
-            newUser.setUsername(userModel.getUsername());
-            newUser.setEmail(userModel.getEmail());
-            // Encode the password before saving
-            String encodedPassword = passwordEncoder.encode(userModel.getPassword());
-            newUser.setPassword(encodedPassword);
-            System.out.println("encoded" + encodedPassword);
-            userRepository.save(newUser);
-            return ResponseEntity.ok("User is added successfully");
-        } else {
-            throw new UserIsAlreadyExistException("User Is Already Exist!");
-        }
+  @Override
+  public ResponseAuthenticationModel registerUser(final RequestRegisterModel requestRegisterModel) {
+
+    if (userRepository.existsByEmail(requestRegisterModel.getEmail())) {
+
+      throw new UserIsAlreadyExistException(
+          "User Email(" + requestRegisterModel.getEmail() + ") is already exist");
     }
 
-    @Override
-    public ResponseAuthenticationModel loginUser(RequestLoginModel user) throws Exception {
-        UserModel foundUser =
-                FileReaderUtil
-                        .getUserFromFile(user.getEmail())
-                        .orElseThrow(() -> new NotAuthenticatedException("User not found"));
+    User newUser =
+        User.builder()
+            .email(requestRegisterModel.getEmail())
+            .password(passwordEncoder.encode(requestRegisterModel.getPassword()))
+            .username(requestRegisterModel.getUsername())
+            .build();
 
-        String decryptedPassword = AESEncryptionUtil.decrypt(foundUser.getPassword());
+    userRepository.save(newUser);
 
-        System.out.println("Decrypted Password: " + decryptedPassword);
-        System.out.println("Provided Password: " + user.getPassword());
+    return ResponseAuthenticationModel.builder()
+        .username(newUser.getUsername())
+        .email(newUser.getEmail())
+        .build();
+  }
 
-        if (!decryptedPassword.equals(user.getPassword())) {
-            System.out.println("Wrong password");
-            throw new NotAuthenticatedException("Wrong password");
-        }
-        return ResponseAuthenticationModel.builder()
-                .email(foundUser.getEmail())
-                .username(foundUser.getUsername())
-                .build();
+  @Override
+  public ResponseAuthenticationModel loginUser(RequestLoginModel requestLoginModel) {
+
+    User user =
+        userRepository
+            .findByEmail(requestLoginModel.getEmail())
+            .orElseThrow(() -> new NotAuthenticatedException("Email or password is incorrect"));
+
+    if (!passwordEncoder.matches(requestLoginModel.getPassword(), user.getPassword())) {
+
+      throw new NotAuthenticatedException("Email or password is incorrect");
     }
 
-    @Override
-    public List<UserModel> listUsers() {
-        return userRepository.findAll().stream()
-                .map(user -> {
-                    UserModel userModel = new UserModel();
-                    userModel.setUsername(user.getUsername());
-                    userModel.setEmail(user.getEmail());
-                    userModel.setId(user.getId());
-                    userModel.setPassword(user.getPassword());
-                    return userModel;
-                }).toList();
-    }
+    return ResponseAuthenticationModel.builder()
+        .email(user.getEmail())
+        .username(user.getUsername())
+        .build();
+  }
+
+  @Override
+  public List<ResponseAuthenticationModel> listUsers() {
+    return userRepository.findAll().stream()
+        .map(
+            user ->
+                ResponseAuthenticationModel.builder()
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .build())
+        .toList();
+  }
 }
